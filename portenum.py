@@ -32,15 +32,15 @@ def nmapifElsePorts():
         #print(nmap[argNmap.args.ip]['tcp'][ports]['name'])
         elif nmap[argNmap.args.ip]['tcp'][ports]['name'] == 'ftp':
             print('still working on ftp\n')
-            # from ftplib import FTP
-            # with FTP(argNmap.args.ip) as ftp:
-            #     # this logins as anonymous with password anonymous
-            #     ftp.login(user='anonymous', passwd='anonymous')
-            #     try:
-            #         ftp.dir()
-            #     except FTP.error_perm as resp:
-            #         if str(resp) == "530 Permission denied":
-            #             pass
+            from ftplib import FTP
+            with FTP(argNmap.args.ip) as ftp:
+                # this logins as anonymous with password anonymous
+                ftp.login(user='anonymous', passwd='anonymous')
+                try:
+                    ftp.dir()
+                except FTP.error_perm as resp:
+                    if str(resp) == "530 Permission denied":
+                        pass
         elif nmap[argNmap.args.ip]['tcp'][ports]['name'] == 'smbd' or 'netbios-ssn':
             print(f'Running smbclient on port {ports}\n')
             subprocess.run(['smbclient', '-NL', f'//{argNmap.args.ip}', '-R'])
