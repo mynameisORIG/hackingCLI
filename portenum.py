@@ -19,28 +19,34 @@ def nmapPreReq():
 
     global victim
     victim = nmap.scan(argNmap.args.ip, 
-        arguments="-sC -sV -T4 -Pn -p-")
+        arguments=f"-sC -sV -T4 -Pn -p- -oN files/nmap/{argNmap.args.ip}.nmap")
 def nmapifElsePorts():
+    import mmap
     victimPortsList = list(nmap[argNmap.args.ip]['tcp'].keys())
     for ports in victimPortsList:
+        #print(nmap[argNmap.args.ip]['tcp'][ports]['name'])
         # gobuster's any http sites
         if nmap[argNmap.args.ip]['tcp'][ports]['name'] == 'http':
             from lib.enum.dictionary1 import wordlist
             print(f'Running gobuster on port {ports}\n')
-            subprocess.run(['gobuster', 'dir', '-u', f'http://{argNmap.args.ip}:{ports}', '-w', wordlist['gobuster'], '-t', '50', '>', f'files/gobuster/{argNmap.args.ip}{ports}.nmap'])
-            subprocess.run(['nikto', '-h', f'{argNmap.args.ip}:{ports}'])
-        #print(nmap[argNmap.args.ip]['tcp'][ports]['name'])
+            gobusterFile = f'files/gobuster/{argNmap.args.ip}-{ports}.gbuster'
+            gobuster = subprocess.run(['gobuster', 'dir', '-u', f'http://{argNmap.args.ip}:{ports}', '-w', wordlist['gobuster'], '-t', '50', '-o', gobusterFile])
+            nikto = subprocess.run(['nikto', '-h', f'{argNmap.args.ip}:{ports}'])
         elif nmap[argNmap.args.ip]['tcp'][ports]['name'] == 'ftp':
             print('still working on ftp\n')
-            from ftplib import FTP
-            with FTP(argNmap.args.ip) as ftp:
-                # this logins as anonymous with password anonymous
-                ftp.login(user='anonymous', passwd='anonymous')
-                try:
-                    ftp.dir()
-                except FTP.error_perm as resp:
-                    if str(resp) == "530 Permission denied":
-                        pass
+            # from ftplib import FTP
+            # with FTP(argNmap.args.ip) as ftp:
+            #     # this logins as anonymous with password anonymous
+            #     ftp.login(user='anonymous', passwd='anonymous')
+            #     try:
+            #         ftp.dir()
+            #     except FTP.error_perm as resp:
+            #         if str(resp) == "530 Permission denied":
+            #             pass
+        elif nmap[argNmap.args.ip]['tcp'][ports]['name'] == 'mountd':
+            showmount = subprocess.run(['showmount', '-e', f'{argNmap.args.ip}'], stdout=subprocess.PIPE)
+            if showmount.stdout == f'Export list for {argNmap.args.ip}':
+                subprocess.run(['mount', '-t', 'nfs', f'{argNmap.args.ip}:{showmount.stdout[31:40]}, /mnt'], stdout=subprocess.PIPE)
         elif nmap[argNmap.args.ip]['tcp'][ports]['name'] == 'smbd' or 'netbios-ssn':
             print(f'Running smbclient on port {ports}\n')
             subprocess.run(['smbclient', '-NL', f'//{argNmap.args.ip}', '-R'])
