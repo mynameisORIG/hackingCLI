@@ -33,25 +33,41 @@ def nmapifElsePorts():
             gobuster = subprocess.run(['gobuster', 'dir', '-u', f'http://{argNmap.args.ip}:{ports}', '-w', wordlist['gobuster'], '-t', '50', '-o', gobusterFile])
             nikto = subprocess.run(['nikto', '-h', f'{argNmap.args.ip}:{ports}'])
         elif nmap[argNmap.args.ip]['tcp'][ports]['name'] == 'ftp':
-            print('still working on ftp\n')
-            # from ftplib import FTP
-            # with FTP(argNmap.args.ip) as ftp:
-            #     # this logins as anonymous with password anonymous
-            #     ftp.login(user='anonymous', passwd='anonymous')
-            #     try:
-            #         ftp.dir()
-            #     except FTP.error_perm as resp:
-            #         if str(resp) == "530 Permission denied":
-            #             pass
+            # print('still working on ftp\n')
+            from ftplib import FTP
+            ftp = FTP(argNmap.args.ip)
+            # this logins as anonymous with password anonymous
+            ftp.login(user='anonymous', passwd='anonymous')
+            ftp.retrlines('LIST')
+            # try:
+            #     ftp.dir()
+            # except FTP.error_perm as resp:
+            #     if str(resp) == "530 Permission denied":
+            #         pass
         elif nmap[argNmap.args.ip]['tcp'][ports]['name'] == 'mountd':
             showmount = subprocess.run(['showmount', '-e', f'{argNmap.args.ip}'], stdout=subprocess.PIPE)
             if showmount.stdout == f'Export list for {argNmap.args.ip}':
-                subprocess.run(['mount', '-t', 'nfs', f'{argNmap.args.ip}:{showmount.stdout[31:40]}, /mnt'], stdout=subprocess.PIPE)
+                subprocess.run(['mount',
+                                '-t',
+                                'nfs', 
+                                f'{argNmap.args.ip}:{showmount.stdout[31:40]}, /mnt'], stdout=subprocess.PIPE)
+        elif nmap[argNmap.args.ip]['tcp'][ports]['name'] == 'domain':
+            subprocess.run(['dnsrecon', 
+                            '-r', 
+                            '127.0.0.0/24', 
+                            '-n',
+                            f'{argNmap.args.ip}',
+                            '-d', 
+                            'blah'])
         elif nmap[argNmap.args.ip]['tcp'][ports]['name'] == 'smbd' or 'netbios-ssn':
             print(f'Running smbclient on port {ports}\n')
-            subprocess.run(['smbclient', '-NL', f'//{argNmap.args.ip}', '-R'])
+            subprocess.run(['smbclient', 
+                            '-NL', 
+                            f'//{argNmap.args.ip}',
+                            '-R'])
         elif nmap[argNmap.args.ip]['tcp'][ports]['name'] == 'telnet':
-            print('do something with telnet') 
+            print('do something with telnet')
+
 
 
 def main():

@@ -1,14 +1,25 @@
 #!/bin/bash
 
+function userGRP(){
+	echo -e "Finding the groups $USER belongs to: \n"
+	id
+}
+
+function kernelINFO(){
+	echo "finding the kernel version"
+	uname -a
+}
+
+function suid(){
+	echo -e "printing the 4000 suid of $HOSTNAME \n"
+	echo "This is for GTFO"
+	suidFind = find / -perm 04000 -ls 2>/dev/null
+	$suidFIND
+}
+
 function enumerateShell(){
-    echo "finding the user's permssions"
-    id
-    echo "finding kernel version"
-    uname -a
-    # prints all files in root that have a suid of 4000 
-    echo "printing the 4000 suid of $HOSTNAME"
-    suidFind= find / -perm -4000 2>/dev/null
-    $suidFind
-    
+    userGRP
+    kernelINFO
+    suid
 }
 enumerateShell
